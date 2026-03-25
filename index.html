@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NymN's Stream Schedule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #151820;
+      --surface:  #1c2030;
+      --line:     #252a3a;
+      --text:     #edf0f8;
+      --dim:      #4a5270;
+      --dim2:     #6a7298;
+
+      --c-off:        #1c1522;
+      --c-off-border: #2a1e2e;
+      --c-off-num:    #3d2e42;
+
+      --c-blue:   #5aaaff;
+      --c-green:  #80ff6e;
+      --c-orange: #ffbe55;
+      --c-purple: #cc82ff;
+      --c-red:    #ff6060;
+      --c-yellow: #ffe566;
+      --c-teal:   #40e0c8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 0 120px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 60px 52px 44px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .hero h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(4rem, 10vw, 7.5rem);
+      font-weight: 900;
+      line-height: 0.88;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 .accent { color: var(--c-blue); }
+
+    .hero-meta {
+      text-align: right;
+      flex-shrink: 0;
+      padding-bottom: 8px;
+    }
+
+    .hero-meta .handle {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--c-blue);
+      margin-bottom: 6px;
+    }
+
+    .hero-meta .sub {
+      font-size: 13px;
+      color: var(--dim2);
+      line-height: 1.7;
+    }
+
+    .hero-meta a { color: var(--dim2); text-decoration: none; }
+    .hero-meta a:hover { color: var(--text); }
+
+    /* ── MONTH ── */
+    .month-section { padding: 0 52px; }
+
+    .month-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--dim);
+      padding: 36px 0 16px;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    /* ── BOX BASE ── */
+    .box {
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      cursor: default;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .box.off {
+      background: var(--c-off);
+      border: 1px solid var(--c-off-border);
+    }
+
+    .box.off .box-num { color: var(--c-off-num); }
+    .box.off .box-wd  { color: var(--c-off-num); }
+
+    .box.stream {
+      cursor: pointer;
+      background: var(--surface);
+      border: 1px solid var(--line);
+    }
+
+    .box.stream:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    }
+
+    .box.stream:active { transform: translateY(-1px); }
+
+    .box.today {
+      box-shadow: 0 0 0 2px var(--c-blue), 0 4px 20px rgba(90,170,255,0.2);
+    }
+
+    /* ── BOX HEADER ── */
+    .box-head {
+      padding: 12px 12px 8px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .box-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    .box.today .box-num { color: var(--c-blue); }
+
+    .box-wd {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim2);
+      margin-top: 4px;
+    }
+
+    /* ── COLOR STACKS ── */
+    .stacks {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 0 6px 6px;
+    }
+
+    .stack {
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .s-blue   { background: rgba(90,170,255,0.2);   color: var(--c-blue);   }
+    .s-green  { background: rgba(128,255,110,0.18); color: var(--c-green);  }
+    .s-orange { background: rgba(255,190,85,0.18);  color: var(--c-orange); }
+    .s-purple { background: rgba(204,130,255,0.18); color: var(--c-purple); }
+    .s-red    { background: rgba(255,96,96,0.18);   color: var(--c-red);    }
+    .s-yellow { background: rgba(255,229,102,0.18); color: var(--c-yellow); }
+    .s-teal   { background: rgba(64,224,200,0.18);  color: var(--c-teal);   }
+
+    /* ── HOVER TOOLTIP ── */
+    .box-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e2438;
+      border: 1px solid #303658;
+      border-radius: 8px;
+      padding: 9px 12px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 50;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .box-tooltip-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .box-tooltip-sub {
+      font-size: 11px;
+      color: var(--dim2);
+      margin-top: 2px;
+    }
+
+    /* arrow */
+    .box-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #303658;
+    }
+
+    .box.stream:hover .box-tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── POPUP ── */
+    #popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #popup-overlay.visible { display: flex; }
+
+    #popup {
+      background: #1e2235;
+      border: 1px solid #2e3450;
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      box-shadow: 0 28px 72px rgba(0,0,0,0.65);
+      animation: popIn 0.18s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92) translateY(10px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+
+    #popup-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--dim2);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    #popup-close:hover { background: rgba(255,255,255,0.14); color: var(--text); }
+
+    .popup-date {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim2);
+      margin-bottom: 12px;
+    }
+
+    .popup-stacks {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 18px;
+    }
+
+    .popup-stack {
+      border-radius: 7px;
+      padding: 12px 14px;
+      border-left: 3px solid;
+    }
+
+    .popup-stack-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .popup-stack-detail {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 4px;
+      opacity: 0.75;
+    }
+
+    .popup-stack-flag {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-top: 7px;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .popup-time {
+      font-size: 13px;
+      color: var(--dim2);
+      font-weight: 500;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin: 52px 52px 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--dim2);
+    }
+
+    .footer a { color: var(--dim2); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .hero { padding: 40px 24px 32px; flex-direction: column; align-items: flex-start; }
+      .hero-meta { text-align: left; }
+      .month-section { padding: 0 24px; }
+      .footer { margin: 48px 24px 0; }
+      .grid { grid-template-columns: repeat(5, 1fr); }
+      .box { min-height: 86px; }
+    }
+
+    @media (max-width: 440px) {
+      .grid { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div id="popup-overlay" onclick="closePopup(event)">
+  <div id="popup">
+    <button id="popup-close" onclick="closePopupDirect()">✕</button>
+    <div class="popup-date"   id="popup-date"></div>
+    <div class="popup-stacks" id="popup-stacks"></div>
+    <div class="popup-time"   id="popup-time"></div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="hero">
+    <h1>NymN's<br/>Stream <span class="accent">Schedule</span></h1>
+    <div class="hero-meta">
+      <div class="handle">NymN</div>
+      <div class="sub">
+        <a href="https://twitch.tv/nymn" target="_blank">twitch.tv/nymn</a><br/>
+        All times CET<br/>
+        ~1–2 PM unless noted
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ MARCH ══════ -->
+  <div class="month-section">
+    <div class="month-label">March 2026</div>
+    <div class="grid">
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">23</div><div class="box-wd">Sun</div></div></div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">24</div><div class="box-wd">Mon</div></div></div>
+      </div>
+
+      <!-- 25 RoadCraft sponsored -->
+      <div class="box stream"
+           data-date="Tue, Mar 25" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"RoadCraft","detail":"Focus Entertainment · Reclaim DLC launch","flag":"Sponsored","cls":"s-green"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">25</div><div class="box-wd">Tue</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">RoadCraft</div><div class="box-tooltip-sub">Sponsored · Reclaim DLC</div></div>
+        <div class="stacks">
+          <div class="stack s-green">RoadCraft</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">26</div><div class="box-wd">Wed</div></div></div>
+      </div>
+
+      <!-- 27 Fridays w/ NymN + Madden punishment -->
+      <div class="box stream"
+           data-date="Thu, Mar 27" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Fridays with NymN","detail":"Madden NFL · Lost EAFC26 clash vs Erobb","flag":"Punishment","cls":"s-red"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">27</div><div class="box-wd">Thu</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Fridays with NymN</div><div class="box-tooltip-sub">Madden NFL Punishment</div></div>
+        <div class="stacks">
+          <div class="stack s-red">Madden NFL Punishment</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">28</div><div class="box-wd">Fri</div></div></div>
+      </div>
+
+      <!-- 29 Dragon Ball + Movie Night -->
+      <div class="box stream"
+           data-date="Sat, Mar 29" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Dragon Ball Gekishin Squadra","detail":"","flag":"","cls":"s-orange"},{"name":"Movie Night","detail":"","flag":"","cls":"s-purple"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">29</div><div class="box-wd">Sat</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Dragon Ball + Movie Night</div><div class="box-tooltip-sub">Gekishin Squadra</div></div>
+        <div class="stacks">
+          <div class="stack s-orange">Dragon Ball</div>
+          <div class="stack s-purple">Movie Night</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">30</div><div class="box-wd">Sun</div></div></div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">31</div><div class="box-wd">Mon</div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ APRIL ══════ -->
+  <div class="month-section">
+    <div class="month-label">April 2026</div>
+    <div class="grid">
+
+      <!-- 1 April Fools! -->
+      <div class="box stream"
+           data-date="Wed, Apr 1" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"April Fools! Stream","detail":"Content TBD","flag":"","cls":"s-yellow"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">1</div><div class="box-wd">Wed</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">April Fools! Stream</div><div class="box-tooltip-sub">Content TBD</div></div>
+        <div class="stacks">
+          <div class="stack s-yellow">April Fools! Stream</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">2</div><div class="box-wd">Thu</div></div></div>
+      </div>
+
+      <!-- 3 Stream TBD -->
+      <div class="box stream"
+           data-date="Fri, Apr 3" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Stream","detail":"Content TBD","flag":"","cls":"s-blue"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">3</div><div class="box-wd">Fri</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Stream</div><div class="box-tooltip-sub">Content TBD</div></div>
+        <div class="stacks">
+          <div class="stack s-blue">Stream</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">4</div><div class="box-wd">Sat</div></div></div>
+      </div>
+
+      <!-- 5 Stream + Movie Night -->
+      <div class="box stream"
+           data-date="Sun, Apr 5" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Stream","detail":"Content TBD","flag":"","cls":"s-blue"},{"name":"Movie Night","detail":"","flag":"","cls":"s-purple"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">5</div><div class="box-wd">Sun</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Stream + Movie Night</div><div class="box-tooltip-sub">Content TBD</div></div>
+        <div class="stacks">
+          <div class="stack s-blue">Stream</div>
+          <div class="stack s-purple">Movie Night</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">6</div><div class="box-wd">Mon</div></div></div>
+      </div>
+
+      <!-- 7 Stream TBD -->
+      <div class="box stream"
+           data-date="Tue, Apr 7" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Stream","detail":"Content TBD","flag":"","cls":"s-blue"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">7</div><div class="box-wd">Tue</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Stream</div><div class="box-tooltip-sub">Content TBD</div></div>
+        <div class="stacks">
+          <div class="stack s-blue">Stream</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">8</div><div class="box-wd">Wed</div></div></div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">9</div><div class="box-wd">Thu</div></div></div>
+      </div>
+
+      <!-- 10 Fridays w/ NymN -->
+      <div class="box stream"
+           data-date="Fri, Apr 10" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Fridays with NymN","detail":"","flag":"","cls":"s-red"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">10</div><div class="box-wd">Fri</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Fridays with NymN</div></div>
+        <div class="stacks">
+          <div class="stack s-red">Fridays w/ NymN</div>
+        </div>
+      </div>
+
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">11</div><div class="box-wd">Sat</div></div></div>
+      </div>
+
+      <!-- 12 Stream + Movie Night -->
+      <div class="box stream"
+           data-date="Sun, Apr 12" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Stream","detail":"Content TBD","flag":"","cls":"s-blue"},{"name":"Movie Night","detail":"","flag":"","cls":"s-purple"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">12</div><div class="box-wd">Sun</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Stream + Movie Night</div><div class="box-tooltip-sub">Content TBD</div></div>
+        <div class="stacks">
+          <div class="stack s-blue">Stream</div>
+          <div class="stack s-purple">Movie Night</div>
+        </div>
+      </div>
+
+      <!-- 13 OFF -->
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">13</div><div class="box-wd">Mon</div></div></div>
+      </div>
+
+      <!-- 14 988 Helpline stream -->
+      <div class="box stream"
+           data-date="Tue, Apr 14" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"988 Helpline Stream","detail":"Timberborn / Slay the Spire 2","flag":"Charity","cls":"s-teal"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">14</div><div class="box-wd">Tue</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">988 Helpline Stream</div><div class="box-tooltip-sub">Timberborn / Slay the Spire 2</div></div>
+        <div class="stacks">
+          <div class="stack s-teal">988 Helpline</div>
+        </div>
+      </div>
+
+      <!-- 15 OFF -->
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">15</div><div class="box-wd">Wed</div></div></div>
+      </div>
+
+      <!-- 16 OFF -->
+      <div class="box off">
+        <div class="box-head"><div><div class="box-num">16</div><div class="box-wd">Thu</div></div></div>
+      </div>
+
+      <!-- 17 Fridays w/ NymN -->
+      <div class="box stream"
+           data-date="Fri, Apr 17" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Fridays with NymN","detail":"","flag":"","cls":"s-red"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">17</div><div class="box-wd">Fri</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Fridays with NymN</div></div>
+        <div class="stacks">
+          <div class="stack s-red">Fridays w/ NymN</div>
+        </div>
+      </div>
+
+      <!-- 18 Sidemen Charity Match react -->
+      <div class="box stream"
+           data-date="Sat, Apr 18" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Sidemen Charity Match React","detail":"Sidemen vs YouTube Allstars · Wembley","flag":"⚠ React rights TBD","cls":"s-yellow"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">18</div><div class="box-wd">Sat</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Sidemen Charity Match React</div><div class="box-tooltip-sub">Wembley · Apr 18</div></div>
+        <div class="stacks">
+          <div class="stack s-yellow">Sidemen React</div>
+        </div>
+      </div>
+
+      <!-- 19 Movie Night stream -->
+      <div class="box stream"
+           data-date="Sun, Apr 19" data-time="~1–2 PM CET"
+           data-stacks='[{"name":"Stream","detail":"Content TBD","flag":"","cls":"s-blue"},{"name":"Movie Night","detail":"","flag":"","cls":"s-purple"}]'
+           onclick="openPopup(this)">
+        <div class="box-head"><div><div class="box-num">19</div><div class="box-wd">Sun</div></div></div>
+        <div class="box-tooltip"><div class="box-tooltip-name">Stream + Movie Night</div><div class="box-tooltip-sub">Content TBD</div></div>
+        <div class="stacks">
+          <div class="stack s-blue">Stream</div>
+          <div class="stack s-purple">Movie Night</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>NymN · 2026</span>
+    <a href="https://twitch.tv/nymn" target="_blank">twitch.tv/nymn →</a>
+  </div>
+
+</div>
+
+<script>
+  // ── POPUP ──
+  const clsToColor = {
+    's-blue':   '#5aaaff',
+    's-green':  '#80ff6e',
+    's-orange': '#ffbe55',
+    's-purple': '#cc82ff',
+    's-red':    '#ff6060',
+    's-yellow': '#ffe566',
+    's-teal':   '#40e0c8',
+  };
+
+  function openPopup(box) {
+    const stacks = JSON.parse(box.dataset.stacks);
+    document.getElementById('popup-date').textContent = box.dataset.date;
+    document.getElementById('popup-time').textContent = box.dataset.time;
+
+    const container = document.getElementById('popup-stacks');
+    container.innerHTML = '';
+    stacks.forEach(s => {
+      const color = clsToColor[s.cls] || '#5aaaff';
+      const el = document.createElement('div');
+      el.className = 'popup-stack';
+      el.style.background   = `${color}15`;
+      el.style.borderLeftColor = color;
+      el.innerHTML = `
+        <div class="popup-stack-name" style="color:${color}">${s.name}</div>
+        ${s.detail ? `<div class="popup-stack-detail" style="color:${color}">${s.detail}</div>` : ''}
+        ${s.flag   ? `<div class="popup-stack-flag"   style="color:${color}">${s.flag}</div>`   : ''}
+      `;
+      container.appendChild(el);
+    });
+
+    document.getElementById('popup-overlay').classList.add('visible');
+  }
+
+  function closePopupDirect() {
+    document.getElementById('popup-overlay').classList.remove('visible');
+  }
+
+  function closePopup(e) {
+    if (e.target === document.getElementById('popup-overlay')) closePopupDirect();
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopupDirect(); });
+
+  // ── TODAY ──
+  (function() {
+    const now = new Date(), d = now.getDate(), m = now.getMonth() + 1;
+    const map = [
+      [23,3],[24,3],[25,3],[26,3],[27,3],[28,3],[29,3],[30,3],[31,3],
+      [1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[8,4],[9,4],[10,4],[11,4],[12,4],
+      [13,4],[14,4],[15,4],[16,4],[17,4],[18,4],[19,4]
+    ];
+    document.querySelectorAll('.box').forEach((box, i) => {
+      if (map[i] && map[i][0] === d && map[i][1] === m) box.classList.add('today');
+    });
+  })();
+
+  // ── PARTICLES ──
+  (function() {
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let W, H, dots;
+
+    const COLORS = ['#5aaaff','#cc82ff','#80ff6e','#ffbe55','#40e0c8'];
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function makeDot() {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.3,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        alpha: Math.random() * 0.3 + 0.06,
+      };
+    }
+
+    function init() { resize(); dots = Array.from({ length: 100 }, makeDot); }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      dots.forEach(dot => {
+        dot.x += dot.vx;
+        dot.y += dot.vy;
+        if (dot.x < -4) dot.x = W + 4;
+        if (dot.x > W + 4) dot.x = -4;
+        if (dot.y < -4) dot.y = H + 4;
+        if (dot.y > H + 4) dot.y = -4;
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
+        ctx.fillStyle = dot.color;
+        ctx.globalAlpha = dot.alpha;
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    init();
+    draw();
+  })();
+</script>
+
+</body>
+</html>
